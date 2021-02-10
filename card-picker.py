@@ -8,13 +8,17 @@ from bs4 import BeautifulSoup
 class card_info():
 	def __init__(self, soup):
 		self.name = ""
+		self.img_url = ""
 		self.labels = np.chararray(7, itemsize=512, unicode=True)
 		self.values = np.chararray(7, itemsize=512, unicode=True)
-		self.img_url = ""
-
+	
 		# extract card title
 		card_title = soup.find(id="firstHeading").text
 		self.name = str(card_title)
+
+		# extract card picture
+		card_img = soup.find('img', class_="pi-image-thumbnail")
+		self.img_url = str(card_img["src"])
 
 		# extract card labels from the HTML on the website
 		card_labels = soup.find_all('h3', class_="pi-data-label pi-secondary-font")
@@ -26,10 +30,7 @@ class card_info():
 		for index, value in enumerate(card_data):
 			self.values[index] = str(value.text)
 
-		# extract card picture
-		card_img = soup.find('img', class_="pi-image-thumbnail")
-		self.img_url = str(card_img["src"])
-
+	# print functions for testing
 	def print_labels(self):
 		print(self.labels)
 
@@ -59,16 +60,18 @@ def main():
 	page = requests.get(URL)
 	card_soup = BeautifulSoup(page.content, 'lxml')
 
+	# create a card_info object
 	card = card_info(card_soup)
 	if card.labels[0] == '':
 		print('Card not found. Maybe check your spelling?')
 		sys.exit(0)
 	
-	card.print_labels()
-	card.print_values()
-	card.print_imgurl()
-
+	# download card png
 	urllib.request.urlretrieve(card.img_url, "card.png")
+
+	# ----- TkTinker GUI -----
+
+
 
 
 if __name__ == '__main__':
