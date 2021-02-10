@@ -1,4 +1,4 @@
-import sys, string, requests
+import sys, string, requests, urllib.request
 import numpy as np
 import pandas as pd
 import tkinter as tk
@@ -7,27 +7,28 @@ from bs4 import BeautifulSoup
 
 class card_info():
 	def __init__(self, soup):
+		self.name = ""
 		self.labels = np.chararray(7, itemsize=512, unicode=True)
 		self.values = np.chararray(7, itemsize=512, unicode=True)
+		self.img_url = ""
+
+		# extract card title
+		card_title = soup.find(id="firstHeading").text
+		self.name = str(card_title)
 
 		# extract card labels from the HTML on the website
 		card_labels = soup.find_all('h3', class_="pi-data-label pi-secondary-font")
 		for index, label in enumerate(card_labels):
-			#print(str(label.text))
 			self.labels[index] = str(label.text)
-			#print(self.labels[index])
 
 		# extract corresponding card values
 		card_data = soup.find_all('div', class_="pi-data-value pi-font")
 		for index, value in enumerate(card_data):
 			self.values[index] = str(value.text)
-			#print(self.values[index])
-
 
 		# extract card picture
-
-		# extract card title
-
+		card_img = soup.find('img', class_="pi-image-thumbnail")
+		self.img_url = str(card_img["src"])
 
 	def print_labels(self):
 		print(self.labels)
@@ -35,6 +36,8 @@ class card_info():
 	def print_values(self):
 		print(self.values)
 
+	def print_imgurl(self):
+		print(self.img_url)
 
 def main():
 	card_name = input("Enter card name: ")
@@ -60,11 +63,12 @@ def main():
 	if card.labels[0] == '':
 		print('Card not found. Maybe check your spelling?')
 		sys.exit(0)
-
 	
 	card.print_labels()
 	card.print_values()
+	card.print_imgurl()
 
+	urllib.request.urlretrieve(card.img_url, "card.png")
 
 
 if __name__ == '__main__':
