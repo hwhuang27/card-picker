@@ -67,6 +67,7 @@ class card_info():
 	def print_imgurl(self):
 		print(self.img_url)
 
+# main tkinter window
 class query_window(tk.Frame):
 	def __init__(self, master):
 		self.master = master
@@ -99,21 +100,27 @@ class query_window(tk.Frame):
 		self.card_name = input_card_name(self.query_box.get())			# get query from text field
 		self.card_soup = get_soup(self.card_name)						# create soup object from StS wikia
 		self.card = card_info(self.card_soup)							# create card object using scraped data
-		urllib.request.urlretrieve(self.card.img_url, "card.png")		# download card thumbnail    	
+		urllib.request.urlretrieve(self.card.img_url, "card.png")		# download card thumbnail
+		self.open_card_window()
 
 	# make a message box for query 
-    def open_card_window(self):
-        self.new_window = tk.Toplevel(self.master)
-        self.new_card = card_window(self.new_window)
-	
+	def open_card_window(self):
+		self.new_window = tk.Toplevel(self.master)
+		self.new_card = card_window(self.new_window)
+
+# new window to display card info 
+class card_window(tk.Frame):
+	def __init__(self, master):
+		self.master = master
+		self.frame = tk.Frame(self.master)
+		self.quitButton = tk.Button(self.frame, text = 'Quit', width = 25, command = self.close_window)
+		self.quitButton.pack()
+		self.frame.pack()
+
+	def close_window(self):
+		self.master.destroy()	
 
 def main():
-	# ----- Delete this when finished -----
-	# card_name = input_card_name()	
-	# card_soup = get_soup(card_name)		# create soup object from StS wikia
-	# card = card_info(card_soup)			# create card object using scraped data
-	# urllib.request.urlretrieve(card.img_url, "card.png")	# download card thumbnail
-
 	root = tk.Tk()
 	root.title("StS-card-viewer")
 	app = query_window(master=root)
