@@ -71,28 +71,24 @@ class card_info():
 class query_window(tk.Frame):
 	def __init__(self, master):
 		self.master = master
-		self.frame = tk.Frame(self.master, padx=15, pady=5)
-		self.frame.pack()
+		self.frame = tk.Frame(self.master)
+		self.frame.pack(padx=20, pady=20)
 		self.btmframe = tk.Frame(self.master)
 		self.btmframe.pack(side='bottom', pady=10)
 		self.make_query_field()
 	    
 	def make_query_field(self):
-		# make logo display
 		self.logo = tk.PhotoImage(file="logo.png")
 		self.logo_disp = tk.Label(self.frame, image=self.logo)
 		self.logo_disp.pack(side="top")	
 
-		# create user input var / card name label
 		self.user_input = tk.StringVar()
 		self.name_label = tk.Label(self.frame, text="Card Name ")
 		self.name_label.pack(side="left")
 
-		# create text field
 		self.query_box = tk.Entry(self.frame)
 		self.query_box.pack(side="left")
 
-		# create submit button
 		self.submit_button = tk.Button(self.btmframe, text="Submit", command=lambda: self.submit())
 		self.submit_button.pack()
 
@@ -106,23 +102,36 @@ class query_window(tk.Frame):
 	# make a message box for query 
 	def open_card_window(self):
 		self.new_window = tk.Toplevel(self.master)
-		self.new_card = card_window(self.new_window)
+		self.new_card = card_window(self.new_window, self.card)
 
 # new window to display card info 
 class card_window(tk.Frame):
-	def __init__(self, master):
+	def __init__(self, master, card):
 		self.master = master
-		self.frame = tk.Frame(self.master)
-		self.quitButton = tk.Button(self.frame, text = 'Quit', width = 25, command = self.close_window)
-		self.quitButton.pack()
+		self.master.title(card.name)
+		self.frame = tk.Frame(self.master, padx=10, pady=5)
 		self.frame.pack()
+		self.btmframe = tk.Frame(self.master)
+		self.btmframe.pack(side='bottom', pady=5)
+		self.make_card_field(card)
+
+	def make_card_field(self, card):
+		self.thumbnail = tk.PhotoImage(file="card.png")
+		self.thumb_disp = tk.Label(self.frame, image=self.thumbnail)
+		self.thumb_disp.pack(side="top")
+
+		card.print_labels()
+		card.print_values()
+		self.quit_button = tk.Button(self.btmframe, text='Close', width=25, command=self.close_window)
+		self.quit_button.pack()
 
 	def close_window(self):
 		self.master.destroy()	
 
 def main():
 	root = tk.Tk()
-	root.title("StS-card-viewer")
+	root.title("Card Viewer")
+	root.iconphoto(True, tk.PhotoImage(file="sts-ico.png"))
 	app = query_window(master=root)
 	root.mainloop()
 
