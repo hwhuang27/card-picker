@@ -6,32 +6,28 @@ from PIL import ImageTk, Image
 from pprint import pprint
 from bs4 import BeautifulSoup
 
-class card_window(tk.Frame):
-	def __init__(self, master=None):
-		super().__init__(master)
-		self.master = master
-		self.pack()
-		self.create_widgets()
+def input_card_name(card_name):
+	# capitalize if not already and handle special cases
+	if "'" in card_name:
+		card_name = card_name.replace("'", "%27")
+	card_name = string.capwords(card_name)
+	if " " in card_name:
+		card_name = card_name.replace(" ", "_")
 
-	def create_widgets(self):
-		self.thumbnail = tk.PhotoImage(file="card.png")
-		self.display = tk.Label(
-			image=self.thumbnail, 
-			bg="black"
-			)
-		self.display.pack(side="top")
+	# strike/defend defaults to class: defect 
+	if card_name == 'Strike':
+		card_name = 'Strike_(Defect)'
+	if card_name == 'Defend':
+		card_name = 'Defend_(Defect)'
 
-		"""
-		self.hi_there = tk.Button(self)
-		self.hi_there["text"] = "Hello World\n(click me)"
-		self.hi_there["command"] = self.say_hi
-		self.hi_there.pack(side="top")
-		"""
-		self.quit = tk.Button(self, text="QUIT", fg="red",
-		                      command=self.master.destroy)
-		self.quit.pack(side="bottom")
-		
+	return card_name
 
+def get_soup(name):
+	URL = 'https://slay-the-spire.fandom.com/wiki/' + name
+	page = requests.get(URL)
+	return BeautifulSoup(page.content, 'lxml')
+
+# creates card_info object with BeautifulSoup data
 class card_info():
 	def __init__(self, soup):
 		self.name = ""
@@ -71,39 +67,56 @@ class card_info():
 	def print_imgurl(self):
 		print(self.img_url)
 
-def input_card_name():
-	card_name = input("Enter card name: ")
-	# capitalize if not already and handle special cases
-	if "'" in card_name:
-		card_name = card_name.replace("'", "%27")
-	card_name = string.capwords(card_name)
-	if " " in card_name:
-		card_name = card_name.replace(" ", "_")
+class query_window(tk.Frame):
+	def __init__(self, master):
+		self.master = master
+		self.frame = tk.Frame(self.master, padx=15, pady=5)
+		self.frame.pack()
+		self.btmframe = tk.Frame(self.master)
+		self.btmframe.pack(side='bottom', pady=10)
+		self.make_query_field()
+	    
+	def make_query_field(self):
+		# make logo display
+		self.logo = tk.PhotoImage(file="logo.png")
+		self.logo_disp = tk.Label(self.frame, image=self.logo)
+		self.logo_disp.pack(side="top")	
 
-	# strike/defend defaults to class: defect 
-	if card_name == 'Strike':
-		card_name = 'Strike_(Defect)'
-	if card_name == 'Defend':
-		card_name = 'Defend_(Defect)'
+		# create user input var / card name label
+		self.user_input = tk.StringVar()
+		self.name_label = tk.Label(self.frame, text="Card Name ")
+		self.name_label.pack(side="left")
 
-	return card_name
+		# create text field
+		self.query_box = tk.Entry(self.frame)
+		self.query_box.pack(side="left")
 
-def get_soup(name):
-	URL = 'https://slay-the-spire.fandom.com/wiki/' + name
-	page = requests.get(URL)
-	return BeautifulSoup(page.content, 'lxml')
+		# create submit button
+		self.submit_button = tk.Button(self.btmframe, text="Submit", command=lambda: self.submit())
+		self.submit_button.pack()
+
+	def submit(self):
+		self.card_name = input_card_name(self.query_box.get())			# get query from text field
+		self.card_soup = get_soup(self.card_name)						# create soup object from StS wikia
+		self.card = card_info(self.card_soup)							# create card object using scraped data
+		urllib.request.urlretrieve(self.card.img_url, "card.png")		# download card thumbnail    	
+
+	# make a message box for query 
+    def open_card_window(self):
+        self.new_window = tk.Toplevel(self.master)
+        self.new_card = card_window(self.new_window)
+	
 
 def main():
-	card_name = input_card_name()	
-	card_soup = get_soup(card_name)		# create soup object from StS wikia
-	card = card_info(card_soup)			# create card object using scraped data
-	urllib.request.urlretrieve(card.img_url, "card.png")	# download card thumbnail
+	# ----- Delete this when finished -----
+	# card_name = input_card_name()	
+	# card_soup = get_soup(card_name)		# create soup object from StS wikia
+	# card = card_info(card_soup)			# create card object using scraped data
+	# urllib.request.urlretrieve(card.img_url, "card.png")	# download card thumbnail
 
-	# ----- TkTinker GUI -----
 	root = tk.Tk()
-	root.title(card.name)
-	root.configure(background="black")
-	app = card_window(master=root)
+	root.title("StS-card-viewer")
+	app = query_window(master=root)
 	root.mainloop()
 
 if __name__ == '__main__':
