@@ -66,6 +66,7 @@ class card_info():
 
 	def print_imgurl(self):
 		print(self.img_url)
+
 # main tkinter window
 class query_window(tk.Frame):
 	def __init__(self, master):
@@ -75,7 +76,9 @@ class query_window(tk.Frame):
 		self.btmframe = tk.Frame(self.master)
 		self.btmframe.pack(side='bottom', pady=10)
 		self.make_query_field()
-	    
+		self.make_submit_button()
+		self.master.bind('<Return>', self.submit_enter_event)	
+
 	def make_query_field(self):
 		self.logo = tk.PhotoImage(file="../img/logo.png")
 		self.logo_disp = tk.Label(self.frame, image=self.logo)
@@ -88,18 +91,25 @@ class query_window(tk.Frame):
 		self.query_box = tk.Entry(self.frame)
 		self.query_box.pack(side="left")
 
+	def make_submit_button(self):
 		self.submit_button = tk.Button(self.btmframe, text="Submit", font=("Ubuntu", 13, "bold"),
-			command=lambda: self.submit())
+			command=lambda: self.submit_event())
 		self.submit_button.pack()
 
-	def submit(self):
+	def submit_event(self):
 		self.card_name = input_card_name(self.query_box.get())				# get query from text field
 		self.card_soup = get_soup(self.card_name)							# create soup object from StS wikia
 		self.card = card_info(self.card_soup)								# create card object using scraped data
 		urllib.request.urlretrieve(self.card.img_url, "../img/card.png")	# download card thumbnail
 		self.open_card_window()
 
-	# make a message box for query 
+	def submit_enter_event(self, event):
+		self.card_name = input_card_name(self.query_box.get())				
+		self.card_soup = get_soup(self.card_name)							
+		self.card = card_info(self.card_soup)						
+		urllib.request.urlretrieve(self.card.img_url, "../img/card.png")	
+		self.open_card_window()
+
 	def open_card_window(self):
 		self.new_window = tk.Toplevel(self.master)
 		self.new_card = card_window(self.new_window, self.card)
@@ -116,6 +126,7 @@ class card_window(tk.Frame):
 		self.make_thumbnail()
 		self.make_card_fields(card)
 		self.make_quit_button()
+		self.master.bind('<Escape>', self.close_window_event)	
 
 	def make_thumbnail(self):
 		self.thumbnail = tk.PhotoImage(file="../img/card.png")
@@ -168,6 +179,9 @@ class card_window(tk.Frame):
 			self.effect2_value.pack(pady=3)		
 
 	def close_window(self):
+		self.master.destroy()
+
+	def close_window_event(self, event):
 		self.master.destroy()	
 
 def main():
@@ -182,6 +196,5 @@ if __name__ == '__main__':
 
 # --- to do ---
 
-# event handlers for enterkey-submit, esc-close, etc. for both windows
+# make program not exit on typo - messagebox - warning
 # fix grammatical issues for labels/values
-# make program not exit on typo
